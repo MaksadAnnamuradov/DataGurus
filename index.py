@@ -7,22 +7,24 @@ from app import app
 from app import server
 
 # Connect to your app pages
-from apps import vgames, global_sales, animal_calls, country_population, uploading, data_share, datatable, recycling, choro_map
+from apps import vgames, global_sales, animal_calls, country_population, uploading, data_share, datatable, recycling, choro_map, dash_excel, dash_api_data
 
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div([
-        dcc.Link('Video Games| ', href='/apps/vgames'),
+        dcc.Link('Historgrams | ', href='/apps/vgames'),
         # dcc.Link('Other Products| ', href='/apps/global_sales'),
         # dcc.Link('Animal Calls| ', href='/apps/animal_calls'),
         #dcc.Link('Restaurant Inspections| ', href='/apps/restaurant_inspections'),
-        dcc.Link('Country Population|', href='/apps/country_population'),
-        dcc.Link('Uploading Data| ', href='/apps/uploading'),
+        dcc.Link('Line Graphs | ', href='/apps/country_population'),
+        dcc.Link('Data Upload | ', href='/apps/uploading'),
         # dcc.Link('Sharing Data| ', href='/apps/data_share'),
-        dcc.Link('Data Table| ', href='/apps/datatable'),
-        dcc.Link("Recycling|",  href='/apps/recycling'),
-         dcc.Link("choroMap",  href='/apps/choro_map'),
+        dcc.Link('Data Table | ', href='/apps/datatable'),
+        dcc.Link("Data Map | ",  href='/apps/recycling'),
+        dcc.Link("Chloro Map | ",  href='/apps/choro_map'),
+        dcc.Link("Dash Excel | ",  href='/apps/dash_excel'),
+        dcc.Link("Dash API Data | ",  href='/apps/dash_api_data'),
     ], className="row"),
     html.Div(id='page-content', children=[])
 ])
@@ -51,6 +53,10 @@ def display_page(pathname):
         return recycling.layout
     if pathname == '/apps/choro_map':
         return choro_map.layout
+    if pathname == '/apps/dash_excel':
+        return dash_excel.layout
+    if pathname == '/apps/dash_api_data':
+        return dash_api_data.layout
     else:
         return "404 Page Error! Please choose a link"
 

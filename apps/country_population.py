@@ -71,4 +71,3 @@ def update_side_graph(hov_data, clk_data, slct_data, country_chosen):
         fig2 = px.pie(data_frame=dff2, values='pop', names='country', title=f'Population for: {hov_year}')
         return fig2
 
-# https://youtu.be/G8r2BB3GFVY

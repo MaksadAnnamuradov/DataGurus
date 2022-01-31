@@ -23,7 +23,7 @@ app.layout = html.Div([
         dcc.Link('Data Table | ', href='/apps/datatable'),
         dcc.Link("Data Map | ",  href='/apps/recycling'),
         dcc.Link("Chloro Map | ",  href='/apps/choro_map'),
-        dcc.Link("Dash Excel | ",  href='/apps/dash_excel'),
+        # dcc.Link("Dash Excel | ",  href='/apps/dash_excel'),
         dcc.Link("Dash API Data | ",  href='/apps/dash_api_data'),
     ], className="row"),
     html.Div(id='page-content', children=[])
@@ -53,12 +53,12 @@ def display_page(pathname):
         return recycling.layout
     if pathname == '/apps/choro_map':
         return choro_map.layout
-    if pathname == '/apps/dash_excel':
-        return dash_excel.layout
+    # if pathname == '/apps/dash_excel':
+    #     return dash_excel.layout
     if pathname == '/apps/dash_api_data':
         return dash_api_data.layout
     else:
-        return "404 Page Error! Please choose a link"
+         return dash_api_data.layout
 
 
 if __name__ == '__main__':

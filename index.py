@@ -7,7 +7,7 @@ from app import app
 from app import server
 
 # Connect to your app pages
-from apps import vgames, global_sales, animal_calls, country_population, uploading, data_share, datatable, recycling, choro_map, dash_excel, dash_api_data
+from apps import vgames, global_sales, animal_calls, country_population, uploading, data_share, datatable, recycling, choro_map, dash_excel, dash_api_data, mongo_dash_AWS, dash_bigQuery
 
 
 app.layout = html.Div([
@@ -25,6 +25,8 @@ app.layout = html.Div([
         dcc.Link("Chloro Map | ",  href='/apps/choro_map'),
         # dcc.Link("Dash Excel | ",  href='/apps/dash_excel'),
         dcc.Link("Dash API Data | ",  href='/apps/dash_api_data'),
+        dcc.Link("MongoDB Dash AWS | ",  href='/apps/mongo_dash_AWS'),
+        dcc.Link("BigQuery Dash AWS | ",  href='/apps/dash_bigQuery'),
     ], className="row"),
     html.Div(id='page-content', children=[])
 ])
@@ -57,6 +59,10 @@ def display_page(pathname):
     #     return dash_excel.layout
     if pathname == '/apps/dash_api_data':
         return dash_api_data.layout
+    if pathname == '/apps/mongo_dash_AWS':
+        return mongo_dash_AWS.layout
+    if pathname == '/apps/dash_bigQuery':
+        return dash_bigQuery.layout
     else:
          return dash_api_data.layout
 

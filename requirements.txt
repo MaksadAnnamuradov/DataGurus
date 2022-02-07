@@ -22,3 +22,5 @@ six==1.16.0
 tenacity==8.0.1
 Werkzeug==2.0.2
 sodapy==2.1.0
+pymongo==4.0.1
+dnspython==2.2.0

@@ -68,7 +68,7 @@
 # if __name__ == '__main__':
 #     app.run_server(debug=True)
 
-
+# https://levelup.gitconnected.com/how-to-setup-user-authentication-for-dash-apps-using-python-and-flask-6c2e430cdb51
 
 import dash
 from dash import Input, Output, State, dcc, html
@@ -94,6 +94,14 @@ class Users(db.Model):
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
 Users_tbl = Table('users', Users.metadata)
+
+#fuction to create table using Users class
+def create_users_table():
+    Users.metadata.create_all(engine)
+
+
+#create the table
+create_users_table()
 
 app = dash.Dash(__name__)
 

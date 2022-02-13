@@ -24,3 +24,5 @@ Werkzeug==2.0.2
 sodapy==2.1.0
 pymongo==4.0.1
 dnspython==2.2.0
+psycopg2==2.8.5
+Flask-SQLAlchemy==2.4.3

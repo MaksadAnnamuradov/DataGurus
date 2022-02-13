@@ -1,7 +1,7 @@
 # Set up guide: https://docs.google.com/document/d/1EdvOK5_1D4ya94-N0RU5t9Rm_e2YurhU/edit?usp=sharing&ouid=118003078876393636228&rtpof=true&sd=true
 import dash
 from dash import Input, Output, State, dcc, html
-import dash_table
+from dash import dash_table
 
 
 import pandas as pd

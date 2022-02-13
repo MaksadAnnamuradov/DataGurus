@@ -40,9 +40,12 @@ layout = html.Div([
         sort_action="native",           # give user capability to sort columns
         sort_mode="single",             # sort across 'multi' or 'single' columns
         filter_action="native",         # allow filtering of columns
-        page_action='none',             # render all of the data at once. No paging.
+        page_action='native',             # render all of the data at once. No paging.
         style_table={'height': '300px', 'overflowY': 'auto'},
         style_cell={'textAlign': 'left', 'minWidth': '100px', 'width': '100px', 'maxWidth': '100px'},
+        export_format='csv',
+        export_headers='display',
+        merge_duplicate_headers=True,
         style_cell_conditional=[
             {
                 'if': {'column_id': c},
@@ -52,12 +55,12 @@ layout = html.Div([
     ),
 
     html.Button('Add Row', id='editing-rows-button', n_clicks=0),
-    html.Button('Export to Excel', id='save_to_csv', n_clicks=0),
+    # html.Button('Export to Excel', id='save_to_csv', n_clicks=0),
 
     # Create notification when saving to excel
-    html.Div(id='placeholder', children=[]),
-    dcc.Store(id="store", data=0),
-    dcc.Interval(id='interval', interval=1000),
+    # html.Div(id='placeholder', children=[]),
+    # dcc.Store(id="store", data=0),
+    # dcc.Interval(id='interval', interval=1000),
 
     dcc.Graph(id='my_graph')
 
@@ -106,31 +109,31 @@ def display_graph(data):
     return fig
 
 
-@app.callback(
-    [Output('placeholder', 'children'),
-     Output("store", "data")],
-    [Input('save_to_csv', 'n_clicks'),
-     Input("interval", "n_intervals")],
-    [State('our-table', 'data'),
-     State('store', 'data')]
-)
-def df_to_csv(n_clicks, n_intervals, dataset, s):
-    output = html.Plaintext("The data has been saved to your folder.",
-                            style={'color': 'green', 'font-weight': 'bold', 'font-size': 'large'})
-    no_output = html.Plaintext("", style={'margin': "0px"})
+# @app.callback(
+#     [Output('placeholder', 'children'),
+#      Output("store", "data")],
+#     [Input('save_to_csv', 'n_clicks'),
+#      Input("interval", "n_intervals")],
+#     [State('our-table', 'data'),
+#      State('store', 'data')]
+# )
+# def df_to_csv(n_clicks, n_intervals, dataset, s):
+#     output = html.Plaintext("The data has been saved to your folder.",
+#                             style={'color': 'green', 'font-weight': 'bold', 'font-size': 'large'})
+#     no_output = html.Plaintext("", style={'margin': "0px"})
 
-    input_triggered = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
+#     input_triggered = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
 
-    if input_triggered == "save_to_csv":
-        s = 6
-        df = pd.DataFrame(dataset)
-        df.to_csv("Your_Sales_Data.csv")
-        return output, s
-    elif input_triggered == 'interval' and s > 0:
-        s = s-1
-        if s > 0:
-            return output, s
-        else:
-            return no_output, s
-    elif s == 0:
-        return no_output, s
+#     if input_triggered == "save_to_csv":
+#         s = 6
+#         df = pd.DataFrame(dataset)
+#         df.to_csv("Your_Sales_Data.csv")
+#         return output, s
+#     elif input_triggered == 'interval' and s > 0:
+#         s = s-1
+#         if s > 0:
+#             return output, s
+#         else:
+#             return no_output, s
+#     elif s == 0:
+#         return no_output, s

@@ -11,7 +11,8 @@ import dash_bootstrap_components as dbc # pip install dash-bootstrap-components
 
 # Connect to your app pages
 # from apps import global_sales, animal_calls, country_population, data_share, datatable, recycling,choro_map, dash_excel, dash_api_data
-from pages import crud, mongo_dash_AWS, uploading, vgames #dash_bigQuery
+from pages import crud, mongo_dash_AWS, uploading, vgames
+from servers import mongo_crud #dash_bigQuery
 
 # navbar = dbc.NavbarSimple(
 #     children=[

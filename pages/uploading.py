@@ -3,11 +3,8 @@ import datetime
 import io
 
 import dash
-from dash import Input, Output, State, callback
-from dash import dash_table
+from dash import Input, Output, State, callback, dcc, html, dash_table
 import plotly.express as px
-from dash import dcc
-from dash import html
 
 import pandas as pd
 

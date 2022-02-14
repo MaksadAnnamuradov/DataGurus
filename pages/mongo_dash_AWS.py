@@ -1,6 +1,6 @@
 # Set up guide: https://docs.google.com/document/d/1EdvOK5_1D4ya94-N0RU5t9Rm_e2YurhU/edit?usp=sharing&ouid=118003078876393636228&rtpof=true&sd=true
 import dash
-from dash import Input, Output, State, dcc, html
+from dash import Input, Output, State, dcc, html, callback
 from dash import dash_table
 
 
@@ -8,7 +8,9 @@ import pandas as pd
 import plotly.express as px
 import pymongo
 
-from app import app
+#from app import app
+
+dash.register_page(__name__)
 
 # from pymongo import MongoClient
 # might need to run: pip install "pymongo[srv]"
@@ -91,7 +93,7 @@ layout = html.Div([
 
 
 # Update existing rows
-@app.callback(
+@callback(
     Output("hidden-content", "children"),
     Input("save-to-mongodb","n_clicks"),
     State("owner-chosen", "value"),
@@ -106,7 +108,7 @@ def update_mongodb(n, own_v, categ_v, input_v):
 
 
 # Insert new Documents (rows)
-@app.callback(
+@callback(
     Output("ownersd-div", "children"),
     Input("save-new-row","n_clicks"),
     State("input-owner", "value"),
@@ -135,7 +137,3 @@ def new_mongodb_row(n, own_v, anim_v, breed_v, health_v, age, netrd_v):
         info_list.append(doc['owner'] + " is owner of a " + doc["animal"]+"...AND...")
     text = html.H3(children=info_list)
     return text
-
-
-# if __name__ == '__main__':
-#     app.run_server(debug=True, port=8001)

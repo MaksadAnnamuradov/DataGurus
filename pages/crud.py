@@ -1,12 +1,11 @@
 import dash
-from dash import Input, Output, State, dcc, html
+from dash import Input, Output, State, dcc, html, callback
 from dash import dash_table
 
-from app import app
 import pandas as pd
 import plotly.express as px
 
-#app = dash.Dash(__name__)
+dash.register_page(__name__)
 
 layout = html.Div([
     html.Div([
@@ -68,7 +67,7 @@ layout = html.Div([
 # ------------------------------------------------------------------------------------------------
 
 
-@app.callback(
+@callback(
     Output('our-table', 'columns'),
     [Input('adding-columns-button', 'n_clicks')],
     [State('adding-rows-name', 'value'),
@@ -85,7 +84,7 @@ def add_columns(n_clicks, value, existing_columns):
     return existing_columns
 
 
-@app.callback(
+@callback(
     Output('our-table', 'data'),
     [Input('editing-rows-button', 'n_clicks')],
     [State('our-table', 'data'),
@@ -99,7 +98,7 @@ def add_row(n_clicks, rows, columns):
     return rows
 
 
-@app.callback(
+@callback(
     Output('my_graph', 'figure'),
     [Input('our-table', 'data')])
 def display_graph(data):

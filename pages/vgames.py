@@ -1,10 +1,12 @@
 from dash import dcc
 from dash import html
-from dash.dependencies import Input, Output
+from dash import Input, Output, callback
 import plotly.express as px
 import pandas as pd
 import pathlib
-from app import app
+import dash
+#from app import app
+dash.register_page(__name__)
 
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
@@ -34,7 +36,7 @@ layout = html.Div([
 ])
 
 
-@app.callback(
+@callback(
     Output(component_id='my-bar', component_property='figure'),
     [Input(component_id='genre-dropdown', component_property='value'),
      Input(component_id='sales-dropdown', component_property='value')]

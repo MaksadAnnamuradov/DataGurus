@@ -3,16 +3,15 @@ import datetime
 import io
 
 import dash
-from dash.dependencies import Input, Output, State
+from dash import Input, Output, State, callback
 from dash import dash_table
 import plotly.express as px
 from dash import dcc
 from dash import html
 
 import pandas as pd
-from app import app
 
-
+dash.register_page(__name__)
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 # app = dash.Dash(__name__, external_stylesheets=external_stylesheets,
@@ -91,7 +90,7 @@ def parse_contents(contents, filename, date):
     ])
 
 
-@app.callback(Output('output-datatable', 'children'),
+@callback(Output('output-datatable', 'children'),
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
@@ -104,7 +103,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         return children
 
 
-@app.callback(Output('output-div', 'children'),
+@callback(Output('output-div', 'children'),
               Input('submit-button','n_clicks'),
               State('stored-data','data'),
               State('xaxis-data','value'),

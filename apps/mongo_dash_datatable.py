@@ -1,3 +1,5 @@
+from fileinput import filename
+from typing import Collection
 import dash     # need Dash version 1.21.0 or higher
 from dash import Input, Output, State, dcc, html, callback, dash_table
 
@@ -15,10 +17,12 @@ from bson import ObjectId
 client = MongoClient("mongodb+srv://dash:Dash1234@cluster0.jipdo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 
 # Create database called animals
-mydb = client["animals"]
+mydb = client["Maksad"]
 # Create Collection (table) called shelterA
-collection = mydb.shelterA
-
+collection = mydb["default"]
+upload_filename = ""
+docs = {"id":1, "name":"Drew"}
+collection.insert_one(docs)
 
 app = dash.Dash(__name__, suppress_callback_exceptions=True,
                 external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
@@ -62,6 +66,7 @@ app.layout = html.Div([
     dcc.Interval(id='interval_db', interval=86400000 * 7, n_intervals=0),
 
     html.Button("Save to Mongo Database", id="save-it"),
+
     html.Button('Add Row', id='adding-rows-btn', n_clicks=0),
 
     # Create notification when saving to db
@@ -84,6 +89,12 @@ app.layout = html.Div([
 
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
+    global upload_filename
+    #collection = mydb[filename]
+    upload_filename = filename
+    collection.delete_many({})
+    #mydb.drop_collection("default")
+    mydb['default'].rename(filename)
 
     decoded = base64.b64decode(content_string)
     try:
@@ -159,39 +170,51 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
               [Input('interval_db', 'n_intervals')])
 def populate_datatable(n_intervals):
     print(n_intervals)
+    print(collection.name)
+    print(mydb.list_collection_names())
     # Convert the Collection (table) date to a pandas DataFrame
-    df = pd.DataFrame(list(collection.find()))
-    #Drop the _id column generated automatically by Mongo
-    df = df.iloc[:, 1:]
-    print(df.head(20))
 
-    return [
-        dash_table.DataTable(
-            id='my-table',
-            columns=[{
-                'name': x,
-                'id': x,
-                'deletable': True,
-                'renamable': True,
-            } for x in df.columns],
+    df = pd.DataFrame()
+
+    for collect in mydb.list_collection_names():
+        if collect != 'default':
+            df = pd.DataFrame(list(mydb[collect].find({})))
+            #Drop the _id column generated automatically by Mongo
+            df = df.iloc[:, 1:]
+            (df.head(20))
+
+    if df.empty:
+        return html.Div([
+            html.H5("No data found in database")
+        ])
+    else:
+        return [
+            dash_table.DataTable(
+                id='my-table',
+                columns=[{
+                    'name': x,
+                    'id': x,
+                    'deletable': True,
+                    'renamable': True,
+                } for x in df.columns],
 
 
-            data=df.to_dict('records'),
-            editable=True,
-            row_deletable=True,
-            filter_action="native",
-            filter_options={"case": "sensitive"},
-            sort_action="native",  # give user capability to sort columns
-            sort_mode="single",  # sort across 'multi' or 'single' columns
-            page_current=0,  # page number that user is on
-            page_size=6,  # number of rows visible per page
-            style_table={'height': '300px', 'overflowY': 'auto'},
-            style_cell={'textAlign': 'left', 'minWidth': '100px', 'width': '100px', 'maxWidth': '100px'},
-            export_format='csv',
-            export_headers='display',
-            merge_duplicate_headers=True
-        )
-    ]
+                data=df.to_dict('records'),
+                editable=True,
+                row_deletable=True,
+                filter_action="native",
+                filter_options={"case": "sensitive"},
+                sort_action="native",  # give user capability to sort columns
+                sort_mode="single",  # sort across 'multi' or 'single' columns
+                page_current=0,  # page number that user is on
+                page_size=6,  # number of rows visible per page
+                style_table={'height': '300px', 'overflowY': 'auto'},
+                style_cell={'textAlign': 'left', 'minWidth': '100px', 'width': '100px', 'maxWidth': '100px'},
+                export_format='csv',
+                export_headers='display',
+                merge_duplicate_headers=True
+            )
+        ]
 
 
 # Add new rows to DataTable ***********************************************
@@ -229,31 +252,35 @@ def add_columns(n_clicks, value, existing_columns):
     Output("alert-auto", "is_open"),
     Input("save-it", "n_clicks"),
     State("my-table", "data"),
-    [State("alert-auto", "is_open")],
+    State("alert-auto", "is_open"),
     prevent_initial_call=True
 )
 def save_data(n_clicks, data, is_open):
-    dff = pd.DataFrame(data)
-    collection.delete_many({})
-    collection.insert_many(dff.to_dict('records'))
     if n_clicks > 0:
-        return not is_open
+        dff = pd.DataFrame(data)
+        print(mydb.list_collection_names())
+        
+        mydb[upload_filename].delete_many({})
+        mydb[upload_filename].insert_many(dff.to_dict('records'))
+        print("Data saved to database", mydb[upload_filename].name)
+        if n_clicks > 0:
+            return not is_open
     return is_open
 
 
 # Create graphs from DataTable data ***************************************
-@app.callback(
-    Output('show-graphs', 'children'),
-    Input('my-table', 'data')
-)
-def add_row(data):
-    df_grpah = pd.DataFrame(data)
-    fig_hist1 = px.histogram(df_grpah, x='age',color="animal")
-    fig_hist2 = px.histogram(df_grpah, x="neutered")
-    return [
-        html.Div(children=[dcc.Graph(figure=fig_hist1)], className="six columns"),
-        html.Div(children=[dcc.Graph(figure=fig_hist2)], className="six columns")
-    ]
+# @app.callback(
+#     Output('show-graphs', 'children'),
+#     Input('my-table', 'data')
+# )
+# def add_row(data):
+#     df_grpah = pd.DataFrame(data)
+#     fig_hist1 = px.histogram(df_grpah, x='age',color="animal")
+#     fig_hist2 = px.histogram(df_grpah, x="neutered")
+#     return [
+#         html.Div(children=[dcc.Graph(figure=fig_hist1)], className="six columns"),
+#         html.Div(children=[dcc.Graph(figure=fig_hist2)], className="six columns")
+#     ]
 
 
 if __name__ == '__main__':

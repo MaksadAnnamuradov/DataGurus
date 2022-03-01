@@ -19,6 +19,9 @@ def register_dashapps(app):
     from app.dashapp1.layout import layout
     from app.dashapp1.callbacks import register_callbacks
 
+    from app.animal_calls.layout import animal_layout
+    from app.animal_calls.callbacks import register_animal_callbacks
+
     # Meta tags for viewport responsiveness
     meta_viewport = {
         "name": "viewport",
@@ -29,13 +32,24 @@ def register_dashapps(app):
                          url_base_pathname='/dashboard/',
                          assets_folder=get_root_path(__name__) + '/dashboard/assets/',
                          meta_tags=[meta_viewport])
+    dashapp2 = dash.Dash(__name__,
+                         server=app,
+                         url_base_pathname='/animal/',
+                         assets_folder=get_root_path(__name__) + '/animal/assets/',
+                         meta_tags=[meta_viewport])
 
     with app.app_context():
         dashapp1.title = 'Dashapp 1'
         dashapp1.layout = layout
         register_callbacks(dashapp1)
+    
+    with app.app_context():
+        dashapp2.title = 'Dashapp 2'
+        dashapp2.layout = animal_layout
+        register_animal_callbacks(dashapp2)
 
     _protect_dashviews(dashapp1)
+    _protect_dashviews(dashapp2)
 
 
 def _protect_dashviews(dashapp):

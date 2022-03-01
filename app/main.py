@@ -1,16 +1,26 @@
-from flask import Flask
+from flask import Blueprint, current_app as app
+from flask import render_template
+from pygments.formatters.html import HtmlFormatter
+from markupsafe import Markup
+from flask_login import current_user, login_required, login_user, logout_user
 
 
-app = Flask(__name__, instance_relative_config=True)
-app.config.from_object("config.Config")
-with app.app_context():
-    from . import routes
-    from .dash import demo, iris_kmeans, crossfilter_example
+main = Blueprint('main', __name__)
 
-    app = demo.init_dash(app)
-    app = iris_kmeans.init_dash(app)
-    app = crossfilter_example.init_dash(app)
 
-if __name__ == "__main__":
-    # Only for debugging while developing
-    app.run(host="0.0.0.0", debug=True, port=8080)
+@main.route("/")
+def index():
+    with open("README.md", "r") as fp:
+        formatter = HtmlFormatter(
+            style="solarized-dark", full=True, cssclass="codehilite",
+        )
+        styles = f"<style>{formatter.get_style_defs()}</style>"
+       
+        return render_template(
+            "index.html", styles=Markup(styles),
+        )
+
+@main.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', name=current_user.username)

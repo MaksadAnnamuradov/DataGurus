@@ -10,7 +10,7 @@ dash.register_page(__name__)
 
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
-DATA_PATH = PATH.joinpath("../datasets").resolve()
+DATA_PATH = PATH.joinpath("../app/datasets").resolve()
 
 dfv = pd.read_csv(DATA_PATH.joinpath("vgsales.csv"))  # GregorySmith Kaggle
 sales_list = ["North American Sales", "EU Sales", "Japan Sales", "Other Sales",	"World Sales"]

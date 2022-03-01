@@ -6,8 +6,15 @@ from dotenv import load_dotenv
 BASE_DIR = path.abspath(path.dirname(__file__))
 load_dotenv(path.join(BASE_DIR, ".env"))
 
+import os
 
-class Config:
+
+def get_sqlite_uri():
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    #db_name = os.environ['sqlite:///${PWD}/app.db'].split('/')[-1]
+    return f'sqlite:///{basedir}/app.db'
+    
+class BaseConfig:
     """Flask configuration variables."""
 
     # General Config
@@ -24,3 +31,8 @@ class Config:
     STATIC_FOLDER = "static"
     TEMPLATES_FOLDER = "templates"
     COMPRESSOR_DEBUG = environ.get("COMPRESSOR_DEBUG")
+
+    SQLALCHEMY_DATABASE_URI = get_sqlite_uri()
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = 'secret_key_change_as_you_wish_make_it_long_123'
+

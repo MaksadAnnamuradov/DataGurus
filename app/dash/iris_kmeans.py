@@ -122,9 +122,9 @@ def init_callbacks(dash_app):
     return dash_app
 
 
-def init_dash(flask_server, meta_viewport):
+def init_dash(flask_server):
     """Create a Plotly Dash dashboard."""
-    dash_app = Dash(server=flask_server, routes_pathname_prefix="/iris/",  meta_tags=[meta_viewport])
+    dash_app = Dash(server=flask_server, routes_pathname_prefix="/iris/")
 
     # create dash layout
     dash_app.layout = app_layout

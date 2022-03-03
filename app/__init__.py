@@ -16,16 +16,14 @@ def create_app():
     return server
 
 def register_dashapps(app):
-    from .dash import iris_kmeans
+    from .dash import iris_kmeans, file_uploader
 
-    # Meta tags for viewport responsiveness
-    meta_viewport = {
-        "name": "viewport",
-        "content": "width=device-width, initial-scale=1, shrink-to-fit=no"}
     
-    dashapp1 = iris_kmeans.init_dash(app, meta_viewport)
+    dashapp1 = iris_kmeans.init_dash(app)
+    dashapp2 = file_uploader.init_dash(app)
 
     _protect_dashviews(dashapp1)
+    _protect_dashviews(dashapp2)
 
 
 def _protect_dashviews(dashapp):

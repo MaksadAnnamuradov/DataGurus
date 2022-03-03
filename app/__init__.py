@@ -16,45 +16,21 @@ def create_app():
     return server
 
 def register_dashapps(app):
-    from app.dashapp1.layout import layout
-    from app.dashapp1.callbacks import register_callbacks
-
-    from app.animal_calls.layout import animal_layout
-    from app.animal_calls.callbacks import register_animal_callbacks
+    from .dash import iris_kmeans
 
     # Meta tags for viewport responsiveness
     meta_viewport = {
         "name": "viewport",
         "content": "width=device-width, initial-scale=1, shrink-to-fit=no"}
-
-    dashapp1 = dash.Dash(__name__,
-                         server=app,
-                         url_base_pathname='/dashboard/',
-                         assets_folder=get_root_path(__name__) + '/dashboard/assets/',
-                         meta_tags=[meta_viewport])
-    dashapp2 = dash.Dash(__name__,
-                         server=app,
-                         url_base_pathname='/animal/',
-                         assets_folder=get_root_path(__name__) + '/animal/assets/',
-                         meta_tags=[meta_viewport])
-
-    with app.app_context():
-        dashapp1.title = 'Dashapp 1'
-        dashapp1.layout = layout
-        register_callbacks(dashapp1)
     
-    with app.app_context():
-        dashapp2.title = 'Dashapp 2'
-        dashapp2.layout = animal_layout
-        register_animal_callbacks(dashapp2)
+    dashapp1 = iris_kmeans.init_dash(app, meta_viewport)
 
     _protect_dashviews(dashapp1)
-    _protect_dashviews(dashapp2)
 
 
 def _protect_dashviews(dashapp):
     for view_func in dashapp.server.view_functions:
-        if view_func.startswith(dashapp.config.url_base_pathname):
+        if view_func.startswith(dashapp.config.routes_pathname_prefix):
             dashapp.server.view_functions[view_func] = login_required(
                 dashapp.server.view_functions[view_func])
 

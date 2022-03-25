@@ -3,13 +3,13 @@ import uuid
 
 import dash_uploader as du
 import dash
-import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash import html
+from dash import Input, Output, State
 
 app = dash.Dash(__name__)
 
 UPLOAD_FOLDER_ROOT = r"C:\tmp\Uploads"
-du.configure_upload(app, UPLOAD_FOLDER_ROOT)
+du.configure_upload(app, UPLOAD_FOLDER_ROOT, upload_api="/dash-uploader")
 
 def get_upload_component(id):
     return du.Upload(
@@ -48,13 +48,29 @@ def get_app_layout():
 app.layout = get_app_layout
 
 
-@du.callback(
-    output=Output('callback-output', 'children'),
-    id='dash-uploader',
+@app.callback(
+    Output('callback-output', 'children'),
+    [Input('dash-uploader', 'isCompleted')],
+    [State('dash-uploader', 'fileNames'),
+     State('dash-uploader', 'upload_id')],
 )
-def get_a_list(filenames):
-    return html.Ul([html.Li(filenames)])
+def callback_on_completion(iscompleted, filenames, upload_id):
+    if not iscompleted:
+        return
 
+    out = []
+    if filenames is not None:
+        if upload_id:
+            root_folder = Path(UPLOAD_FOLDER_ROOT) / upload_id
+        else:
+            root_folder = Path(UPLOAD_FOLDER_ROOT)
+
+        for filename in filenames:
+            file = root_folder / filename
+            out.append(file)
+        return html.Ul([html.Li(str(x)) for x in out])
+
+    return html.Div("No Files Uploaded Yet!")
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=8050)

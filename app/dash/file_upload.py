@@ -7,20 +7,18 @@ from flask import Flask, flash, request
 import pandas as pd
 from werkzeug.utils import secure_filename
 import dash
-from dash import html, Output
+from dash import html, Output, Input, State
 import os
 from io import StringIO
 from .dash import Dash
 import dash_uploader as du
+from pathlib import Path
 
-# cwd = os.getcwd()
-# UPLOAD_FOLDER = cwd + '\\www'
+cwd = os.getcwd()
+UPLOAD_FOLDER_ROOT = cwd + '\\www'
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-# # app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 # UPLOAD_FOLDER ='C:/Users/maksa/Documents/projects/DataGurus'
-
-
-
 
 
 def get_upload_component(id):
@@ -28,6 +26,7 @@ def get_upload_component(id):
         id=id,
         max_file_size=1800,  # 1800 Mb
         filetypes=['csv', 'zip'],
+        chunk_size=1800,  # 100 Mb
         upload_id=uuid.uuid1(),  # Unique session id
     )
 
@@ -53,59 +52,52 @@ app_layout = html.Div(
     )
 
 
+def callback_on_completion(iscompleted, filenames, upload_id):
+    if not iscompleted:
+        return
 
-# @app.server.route('/upload', methods=['GET', 'POST'])
-# def upload_file():
-#     if request.method == 'POST':
-#         file = request.files['file']
-#         filename = secure_filename(file.filename)
+    out = []
+    if filenames is not None:
+        if upload_id:
+            root_folder = Path(UPLOAD_FOLDER_ROOT) / upload_id
+        else:
+            root_folder = Path(UPLOAD_FOLDER_ROOT)
 
-#         df = pd.read_csv(request.files['file'].stream._file, encoding='shift-jis')
+        for filename in filenames:
+            file = root_folder / filename
+            out.append(file)
+        return html.Ul([html.Li(str(x)) for x in out])
 
-#         print(df)
-#         #file.save(os.path.join(UPLOAD_FOLDER, filename))
-
-#     return '''
-#     <form method=post enctype=multipart/form-data>
-#       <input type=file name=file>
-#       <input type=submit value=Upload>
-#     </form>
-#     '''
-
-# @du.callback(
-#     output=Output('callback-output', 'children'),
-#     id='dash-uploader',
-# )
-
-def get_a_list(filenames):
-    return html.Ul([html.Li(filenames)])
-
+    return html.Div("No Files Uploaded Yet!")
 
 
 def init_callbacks(dash_app):
-    dash_app.callback(
-       Output('callback-output', 'children'),
-            id='dash-uploader',
-        ),
-    (get_a_list)
+    dash_app.app.callback(
+        Output('callback-output', 'children'),
+        [Input('dash-uploader', 'isCompleted')],
+        [State('dash-uploader', 'fileNames'),
+        State('dash-uploader', 'upload_id')],
+    ),
+    (callback_on_completion)
 
 
 def init_dash(flask_server):
 
     stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
     """Create a Plotly Dash dashboard."""
-    dash_app = Dash(server=flask_server, routes_pathname_prefix="/file/", external_stylesheets=stylesheets)
+    dash_app = Dash(server=flask_server, routes_pathname_prefix="/fileuploader/", external_stylesheets=stylesheets)
 
-        # 1) configure the upload folder
-    du.configure_upload(dash_app, r"C:/Users/maksa/Documents/projects/DataGurus", upload_api='/upload')
+    # 1) configure the upload folder
+    du.configure_upload(dash_app, UPLOAD_FOLDER_ROOT)
 
     # create dash layout
     dash_app.layout = app_layout
 
     # initialize callbacks
-    init_callbacks(dash_app)
+    # init_callbacks(dash_app)
 
     return dash_app
 
 # if __name__ == '__main__':
-#    app.run_server(debug=True)
+#    init_dash(app)
+#    app.run_server(debug=True, port=8050)

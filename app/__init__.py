@@ -16,14 +16,16 @@ def create_app():
     return server
 
 def register_dashapps(app):
-    from .dash import iris_kmeans, file_uploader
+    from .dash import iris_kmeans, file_uploader, file_upload
 
     
     dashapp1 = iris_kmeans.init_dash(app)
     dashapp2 = file_uploader.init_dash(app)
+    dashapp3 = file_upload.init_dash(app)
 
     _protect_dashviews(dashapp1)
     _protect_dashviews(dashapp2)
+    _protect_dashviews(dashapp3)
 
 
 def _protect_dashviews(dashapp):

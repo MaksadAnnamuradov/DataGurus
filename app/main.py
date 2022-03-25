@@ -62,16 +62,16 @@ app_layout = html.Div(
     )
 
 
-@main.route('/upload/', methods=['GET', 'POST'])
+@main.route('/API/resumable', methods=['GET', 'POST'])
 def upload_file():
     cwd = os.getcwd()
     UPLOAD_FOLDER = cwd + '\\www'
   
-    UPLOAD_FOLDER ='C:/Users/maksa/Documents/projects/DataGurus'
+    # UPLOAD_FOLDER ='C:/Users/maksa/Documents/projects/DataGurus'
     if request.method == 'POST':
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-
+        # file = request.files['file']
+        # filename = secure_filename(file.filename)
+        print(request.files['file'].stream._file)
         df = pd.read_csv(request.files['file'].stream._file, encoding='shift-jis')
 
         print(df)

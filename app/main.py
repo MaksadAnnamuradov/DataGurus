@@ -1,3 +1,5 @@
+import base64
+import io
 import os
 import uuid
 from flask import Blueprint, current_app as app
@@ -62,23 +64,25 @@ app_layout = html.Div(
     )
 
 
-@main.route('/API/resumable', methods=['GET', 'POST'])
-def upload_file():
-    cwd = os.getcwd()
-    UPLOAD_FOLDER = cwd + '\\www'
+# @main.route('/API/resumable', methods=['GET', 'POST'])
+# def upload_file():
+#     cwd = os.getcwd()
+#     UPLOAD_FOLDER = cwd + '\\www'
   
-    # UPLOAD_FOLDER ='C:/Users/maksa/Documents/projects/DataGurus'
-    if request.method == 'POST':
-        # file = request.files['file']
-        # filename = secure_filename(file.filename)
-        print(request.files['file'].stream._file)
-        df = pd.read_csv(request.files['file'].stream._file, encoding='shift-jis')
+#     # UPLOAD_FOLDER ='C:/Users/maksa/Documents/projects/DataGurus'
+#     if request.method == 'POST':
+#         # file = request.files['file']
+#         # filename = secure_filename(file.filename)
+#         #decoded = base64.b64decode(request.files['file'].read())
+#         df = pd.read_csv(io.StringIO(request.files['file'].stream._file.decode('utf-8')))
 
-        print(df)
-        # file.save(os.path.join(UPLOAD_FOLDER, filename))
-    return '''
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    '''
+#         #df = pd.read_csv(request.files['file'].stream._file, encoding='shift-jis')
+
+#         print(df)
+#         # file.save(os.path.join(UPLOAD_FOLDER, filename))
+#     return '''
+#     <form method=post enctype=multipart/form-data>
+#       <input type=file name=file>
+#       <input type=submit value=Upload>
+#     </form>
+#     '''

@@ -8,7 +8,7 @@ import dash
 from dash import html
 import os
 from io import StringIO
-from .dash import Dash
+from dash import Dash
 
 
 app_layout = html.Div( 

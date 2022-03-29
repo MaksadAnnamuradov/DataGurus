@@ -187,4 +187,4 @@ def df_to_csv(n_clicks, n_intervals, dataset, s):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=8050)

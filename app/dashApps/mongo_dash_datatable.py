@@ -1,6 +1,6 @@
 from fileinput import filename
 from typing import Collection
-import dash     # need Dash version 1.21.0 or higher
+from .dash import Dash    # need Dash version 1.21.0 or higher
 from dash import Input, Output, State, dcc, html, callback, dash_table
 
 import base64
@@ -24,10 +24,10 @@ upload_filename = ""
 docs = {"id":1, "name":"Drew"}
 collection.insert_one(docs)
 
-app = dash.Dash(__name__, suppress_callback_exceptions=True,
-                external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
+# app = Dash(__name__, suppress_callback_exceptions=True,
+#                 external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
 
-app.layout = html.Div([
+app_layout = html.Div([
      dcc.Upload(
         id='upload-data',
         children=html.Div([
@@ -136,10 +136,12 @@ def parse_contents(contents, filename, date):
 
     ])
 
-@app.callback(Output('file-datatable', 'children'),
-    Input('upload-data', 'contents'),
-    State('upload-data', 'filename'),
-    State('upload-data', 'last_modified'))
+
+
+# @app.callback(Output('file-datatable', 'children'),
+#     Input('upload-data', 'contents'),
+#     State('upload-data', 'filename'),
+#     State('upload-data', 'last_modified'))
 
 def update_output(list_of_contents, list_of_names, list_of_dates):
     if list_of_contents is not None:
@@ -149,8 +151,8 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         return children
 
 # Display Datatable with data from Mongo database *************************
-@app.callback(Output('mongo-datatable', 'children'),
-              [Input('interval_db', 'n_intervals')])
+# @app.callback(Output('mongo-datatable', 'children'),
+#               [Input('interval_db', 'n_intervals')])
 def populate_datatable(n_intervals):
     print(n_intervals)
     print(collection.name)
@@ -201,24 +203,24 @@ def populate_datatable(n_intervals):
 
 
 # Add new rows to DataTable ***********************************************
-@app.callback(
-    Output('my-table', 'data'),
-    [Input('adding-rows-btn', 'n_clicks')],
-    [State('my-table', 'data'),
-     State('my-table', 'columns')],
-)
+# @app.callback(
+#     Output('my-table', 'data'),
+#     [Input('adding-rows-btn', 'n_clicks')],
+#     [State('my-table', 'data'),
+#      State('my-table', 'columns')],
+# )
 def add_row(n_clicks, rows, columns):
     if n_clicks > 0:
         rows.append({c['id']: '' for c in columns})
     return rows
 
 #Add new column
-@callback(
-    Output('my-table', 'columns'),
-    [Input('adding-columns-button', 'n_clicks')],
-    [State('adding-rows-name', 'value'),
-     State('my-table', 'columns')],
-)
+# @callback(
+#     Output('my-table', 'columns'),
+#     [Input('adding-columns-button', 'n_clicks')],
+#     [State('adding-rows-name', 'value'),
+#      State('my-table', 'columns')],
+# )
 def add_columns(n_clicks, value, existing_columns):
     #print(existing_columns)
     if n_clicks > 0:
@@ -231,13 +233,13 @@ def add_columns(n_clicks, value, existing_columns):
 
 
 # Save new DataTable data to the Mongo database ***************************
-@app.callback(
-    Output("alert-auto", "is_open"),
-    Input("save-it", "n_clicks"),
-    State("my-table", "data"),
-    State("alert-auto", "is_open"),
-    prevent_initial_call=True
-)
+# @app.callback(
+#     Output("alert-auto", "is_open"),
+#     Input("save-it", "n_clicks"),
+#     State("my-table", "data"),
+#     State("alert-auto", "is_open"),
+#     prevent_initial_call=True
+# )
 def save_data(n_clicks, data, is_open):
     if n_clicks > 0:
         dff = pd.DataFrame(data)
@@ -251,20 +253,68 @@ def save_data(n_clicks, data, is_open):
     return is_open
 
 
-# Create graphs from DataTable data ***************************************
+#Create graphs from DataTable data ***************************************
 # @app.callback(
 #     Output('show-graphs', 'children'),
 #     Input('my-table', 'data')
 # )
-# def add_row(data):
-#     df_grpah = pd.DataFrame(data)
-#     fig_hist1 = px.histogram(df_grpah, x='age',color="animal")
-#     fig_hist2 = px.histogram(df_grpah, x="neutered")
-#     return [
-#         html.Div(children=[dcc.Graph(figure=fig_hist1)], className="six columns"),
-#         html.Div(children=[dcc.Graph(figure=fig_hist2)], className="six columns")
-#     ]
+def add_row(data):
+    df_grpah = pd.DataFrame(data)
+    fig_hist1 = px.histogram(df_grpah, x='age',color="animal")
+    fig_hist2 = px.histogram(df_grpah, x="neutered")
+    return [
+        html.Div(children=[dcc.Graph(figure=fig_hist1)], className="six columns"),
+        html.Div(children=[dcc.Graph(figure=fig_hist2)], className="six columns")
+    ]
 
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+def init_callbacks(dash_app):
+    dash_app.callback(
+       Output('file-datatable', 'children'),
+       [
+        Input('upload-data', 'contents'),
+        State('upload-data', 'filename'),
+        State('upload-data', 'last_modified'),
+       ],
+    )(update_output)
+    # functionality is the same for both dropdowns, so we reuse filter_options
+    dash_app.callback(Output('mongo-datatable', 'children'),
+              [Input('interval_db', 'n_intervals')],)(
+        populate_datatable
+    )
+    dash_app.callback(
+        Output('my-table', 'data'),
+        [Input('adding-rows-btn', 'n_clicks')],
+        [State('my-table', 'data'),
+        State('my-table', 'columns')],
+    )(add_row)
+    dash_app.callback(
+        Output('my-table', 'columns'),
+        [Input('adding-columns-button', 'n_clicks')],
+        [State('adding-rows-name', 'value'),
+        State('my-table', 'columns')],
+    )(add_columns)
+    dash_app.callback(
+        Output("alert-auto", "is_open"),
+        Input("save-it", "n_clicks"),
+        State("my-table", "data"),
+        State("alert-auto", "is_open"),
+        prevent_initial_call=True
+    )(save_data)
+
+    return dash_app
+
+def init_dash(flask_server):
+    """Create a Plotly Dash dashboard."""
+    dash_app = Dash(server=flask_server, routes_pathname_prefix="/mongo_dash/")
+
+    # create dash layout
+    dash_app.layout = app_layout
+
+    # initialize callbacks
+    init_callbacks(dash_app)
+
+    return dash_app
+
+# if __name__ == '__main__':
+#     app.run_server(debug=True, port=8080)

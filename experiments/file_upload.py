@@ -10,7 +10,7 @@ import dash
 from dash import html, Output, Input, State
 import os
 from io import StringIO
-from .dash import Dash
+from dash import Dash
 import dash_uploader as du
 from pathlib import Path
 

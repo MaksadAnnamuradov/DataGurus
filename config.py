@@ -36,3 +36,15 @@ class BaseConfig:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = 'secret_key_change_as_you_wish_make_it_long_123'
 
+    # Flask-MongoEngine settings
+    MONGODB_SETTINGS = {
+        'db': 'user_db',
+        'host': "mongodb+srv://dash:Dash1234@cluster0.jipdo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+    }
+
+      # Flask-User settings
+    USER_APP_NAME = "Flask-User MongoDB App"      # Shown in and email templates and page footers
+    USER_ENABLE_EMAIL = False      # Disable email authentication
+    USER_ENABLE_USERNAME = True    # Enable username authentication
+    USER_REQUIRE_RETYPE_PASSWORD = True    # Simplify register form
+

@@ -43,8 +43,35 @@ class BaseConfig:
     }
 
       # Flask-User settings
-    USER_APP_NAME = "Flask-User MongoDB App"      # Shown in and email templates and page footers
+    USER_APP_NAME = "DataGurus"      # Shown in and email templates and page footers
     USER_ENABLE_EMAIL = False      # Disable email authentication
     USER_ENABLE_USERNAME = True    # Enable username authentication
     USER_REQUIRE_RETYPE_PASSWORD = True    # Simplify register form
+    USER_ENABLE_CHANGE_PASSWORD = True  # Allow users to change their password
+    USER_ENABLE_CHANGE_USERNAME = True  # Allow users to change their username
+    USER_ENABLE_CONFIRM_EMAIL = True  # Force users to confirm their email
+    USER_ENABLE_FORGOT_PASSWORD = True  # Allow users to reset their passwords
+    USER_ENABLE_EMAIL = True  # Register with Email
+    USER_ENABLE_REGISTRATION = True  # Allow new users to register
+    USER_REQUIRE_RETYPE_PASSWORD = True  # Prompt for `retype password` in:
+
+
+
+        # Flask-Mail settings
+    # For smtp.gmail.com to work, you MUST set "Allow less secure apps" to ON in Google Accounts.
+    # Change it in https://myaccount.google.com/security#connectedapps (near the bottom).
+    MAIL_SERVER = 'smtp.mailtrap.io'
+    MAIL_PORT = 2525
+    MAIL_USE_SSL = False
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = 'd6d92e530b4a3b'
+    MAIL_PASSWORD = '409f126ee39a44'
+    MAIL_DEFAULT_SENDER = '"MyApp" <noreply@data-gurus.com>'
+
+    # Sendgrid settings
+    SENDGRID_API_KEY='place-your-sendgrid-api-key-here'
+
+    # Flask-User settings
+    USER_EMAIL_SENDER_NAME = 'Maksad'
+    USER_EMAIL_SENDER_EMAIL = 'maksad.annamuradow98@gmail.com'
 

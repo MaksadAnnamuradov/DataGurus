@@ -55,6 +55,8 @@ def register_extensions(server):
         username = db.StringField(default='')
         password = db.StringField()
 
+        email = db.StringField()
+
         # User information
         first_name = db.StringField(default='')
         last_name = db.StringField(default='')

@@ -4,7 +4,8 @@ from flask.helpers import get_root_path
 from flask_login import login_required
 from flask_mongoengine import MongoEngine
 import dash
-from flask_user import login_required, UserManager, UserMixin
+from flask_user import login_required, UserManager, UserMixin, current_user
+from flask_login import LoginManager
 
 def create_app():
     server = Flask(__name__)
@@ -21,7 +22,7 @@ def register_dashapps(app):
 
     
     dashapp1 = iris_kmeans.init_dash(app)
-    dashapp2 = mongo_dash_datatable.init_dash(app)
+    dashapp2 = mongo_dash_datatable.init_dash(app, current_user)
 
 
     _protect_dashviews(dashapp1)
@@ -37,11 +38,9 @@ def _protect_dashviews(dashapp):
 
 
 def register_extensions(server):
-    from app.extensions import db
-    from app.extensions import login
-    from app.extensions import migrate
 
-    #db.init_app(server)
+
+    login = LoginManager()
     db = MongoEngine(server)
     login.init_app(server)
     login.login_view = 'auth.login'
@@ -56,6 +55,7 @@ def register_extensions(server):
         password = db.StringField()
 
         email = db.StringField()
+        email_confirmed_at = db.DateTimeField()
 
         # User information
         first_name = db.StringField(default='')
@@ -64,16 +64,20 @@ def register_extensions(server):
         # Relationships
         roles = db.ListField(db.StringField(), default=[])
 
+        def __repr__(self):
+            return '<User %r>' % self.username
+
     # Setup Flask-User and specify the User data-model
     user_manager = UserManager(server, db, User)
-    #migrate.init_app(server, db)
     
 
 def register_blueprints(server):
     from app.main import main
     from app.auth import auth
+    from app.mongo import mongo
 
     
 
     server.register_blueprint(main)
     server.register_blueprint(auth)
+    server.register_blueprint(mongo)

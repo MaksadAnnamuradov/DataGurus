@@ -8,7 +8,6 @@ import pandas as pd
 from pygments.formatters.html import HtmlFormatter
 from markupsafe import Markup
 from flask_login import current_user, login_required
-from werkzeug.utils import secure_filename
 from dash import html
 import dash_uploader as du
 
@@ -30,38 +29,39 @@ def index():
 @main.route('/profile')
 @login_required
 def profile():
+    print("current_user:", current_user)
     return render_template('profile.html', name=current_user.username)
 
 
 
-def get_upload_component(id):
-    return du.Upload(
-        id=id,
-        max_file_size=1800,  # 1800 Mb
-        filetypes=['csv', 'zip'],
-        upload_id=uuid.uuid1(),  # Unique session id
-    )
+# def get_upload_component(id):
+#     return du.Upload(
+#         id=id,
+#         max_file_size=1800,  # 1800 Mb
+#         filetypes=['csv', 'zip'],
+#         upload_id=uuid.uuid1(),  # Unique session id
+#     )
 
 
-app_layout = html.Div(
-        [
-            html.H1('Demo'),
-            html.Div(
-                [
-                    get_upload_component(id='dash-uploader'),
-                    html.Div(id='callback-output'),
-                ],
-                style={  # wrapper div style
-                    'textAlign': 'center',
-                    'width': '600px',
-                    'padding': '10px',
-                    'display': 'inline-block'
-                }),
-        ],
-        style={
-            'textAlign': 'center',
-        },
-    )
+# app_layout = html.Div(
+#         [
+#             html.H1('Demo'),
+#             html.Div(
+#                 [
+#                     get_upload_component(id='dash-uploader'),
+#                     html.Div(id='callback-output'),
+#                 ],
+#                 style={  # wrapper div style
+#                     'textAlign': 'center',
+#                     'width': '600px',
+#                     'padding': '10px',
+#                     'display': 'inline-block'
+#                 }),
+#         ],
+#         style={
+#             'textAlign': 'center',
+#         },
+#     )
 
 
 # @main.route('/API/resumable', methods=['GET', 'POST'])

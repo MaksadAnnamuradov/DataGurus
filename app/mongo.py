@@ -1,11 +1,14 @@
 from flask import Blueprint, Flask, request, json, Response
 from pymongo import MongoClient
 import logging as log
+from flask_login import current_user, login_required
+
+from app.auth import login
 
 mongo = Blueprint('mongo', __name__)
 
 class MongoAPI:
-    def __init__(self, data):
+    def __init__(self, data, name = 'mongo'):
         log.basicConfig(level=log.DEBUG, format='%(asctime)s %(levelname)s:\n%(message)s\n')
         # self.client = MongoClient("mongodb://localhost:27017/")  # When only Mongo DB is running on Docker.
         self.client = MongoClient("mongodb+srv://dash:Dash1234@cluster0.jipdo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")    
@@ -47,25 +50,18 @@ class MongoAPI:
         return output
 
 
-@mongo.route('/')
-def base():
-    return Response(response=json.dumps({"Status": "UP"}),
-                    status=200,
-                    mimetype='application/json')
+# @mongo.route('/')
+# def base():
+#     return Response(response=json.dumps({"Status": "UP"}),
+#                     status=200,
+#                     mimetype='application/json')
 
-
-@mongo.route('/mongodb', methods=['GET'])
+@mongo.route('/init_mongodb', methods=['GET'])
+@login_required
 def mongo_read():
-    data = request.json
-    if data is None or data == {}:
-        return Response(response=json.dumps({"Error": "Please provide connection information"}),
-                        status=400,
-                        mimetype='application/json')
-    obj1 = MongoAPI(data)
-    response = obj1.read()
-    return Response(response=json.dumps(response),
-                    status=200,
-                    mimetype='application/json')
+    db = MongoAPI(name = current_user.username)
+    print(current_user.username)
+    
 
 
 @mongo.route('/mongodb', methods=['POST'])

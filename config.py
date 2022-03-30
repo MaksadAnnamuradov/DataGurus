@@ -44,7 +44,6 @@ class BaseConfig:
 
       # Flask-User settings
     USER_APP_NAME = "DataGurus"      # Shown in and email templates and page footers
-    USER_ENABLE_EMAIL = False      # Disable email authentication
     USER_ENABLE_USERNAME = True    # Enable username authentication
     USER_REQUIRE_RETYPE_PASSWORD = True    # Simplify register form
     USER_ENABLE_CHANGE_PASSWORD = True  # Allow users to change their password
@@ -53,7 +52,6 @@ class BaseConfig:
     USER_ENABLE_FORGOT_PASSWORD = True  # Allow users to reset their passwords
     USER_ENABLE_EMAIL = True  # Register with Email
     USER_ENABLE_REGISTRATION = True  # Allow new users to register
-    USER_REQUIRE_RETYPE_PASSWORD = True  # Prompt for `retype password` in:
 
 
 

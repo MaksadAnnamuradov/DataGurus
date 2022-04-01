@@ -2,6 +2,7 @@ from fileinput import filename
 from typing import Collection
 
 from bleach import clean
+from click import style
 from .dash import Dash    # need Dash version 1.21.0 or higher
 from dash import Input, Output, State, dcc, html, callback, dash_table
 
@@ -13,8 +14,6 @@ import pandas as pd
 import plotly.express as px
 import pymongo
 from pymongo import MongoClient
-from bson import ObjectId
-from app.mongo import MongoAPI
 from flask_login import current_user
 
 # Connect to local server
@@ -29,31 +28,39 @@ docs = {"id":1, "name":"Drew"}
 collection.insert_one(docs)
 
 
-
-#mongo_db = MongoAPI()
-# app = Dash(__name__, suppress_callback_exceptions=True,
-#                 external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
-
 app_layout = html.Div([
-     dcc.Upload(
-        id='upload-data',
-        children=html.Div([
-            'Drag and Drop or ',
-            html.A('Select Files')
-        ]),
-        style={
-            'width': '100%',
-            'height': '60px',
-            'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
-            'borderRadius': '5px',
-            'textAlign': 'center',
-            'margin': '10px'
-        },
-        # Allow multiple files to be uploaded
-        multiple=True
-    ),
+
+    dbc.Button(
+            "Open collapse",
+            id="collapse-button",
+            className="mb-3",
+            color="primary",
+            n_clicks=0,
+        ),
+        dbc.Collapse(
+            dcc.Upload(
+                id='upload-data',
+                children=html.Div([
+                    'Drag and Drop or ',
+                    html.A('Select Files')
+                ]),
+                style={
+                    'width': '100%',
+                    'height': '60px',
+                    'lineHeight': '60px',
+                    'borderWidth': '1px',
+                    'borderStyle': 'dashed',
+                    'borderRadius': '5px',
+                    'textAlign': 'center',
+                },
+                # Allow multiple files to be uploaded
+                multiple=True
+            ),
+            id="collapse",
+            is_open=False,
+        ),
+        
+     
 
     html.Div([
         dcc.Input(
@@ -72,9 +79,22 @@ app_layout = html.Div([
     # activated once/week or when page refreshed
     dcc.Interval(id='interval_db', interval=86400000 * 7, n_intervals=0),
 
-    html.Button("Save to Mongo Database", id="save-it"),
-
-    html.Button('Add Row', id='adding-rows-btn', n_clicks=0),
+     dbc.Button(
+            "Save to Mongo",
+            id="save-it",
+            className="me-1",
+            color="primary",
+            n_clicks=0,
+            style={"margin-left": '20px', 'margin-bottom': '20px'}
+        ),
+     dbc.Button(
+            "Add Row",
+            id='adding-rows-btn',
+            className="me-1",
+            color="primary",
+            n_clicks=0,
+            style={"margin-left": '20px', 'margin-bottom': '20px'}
+        ),
 
     # Create notification when saving to db
     dbc.Alert(
@@ -245,6 +265,12 @@ def add_row(data):
     ]
 
 
+
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
 def init_callbacks(dash_app):
     dash_app.callback(
        Output('file-datatable', 'children'),
@@ -277,6 +303,11 @@ def init_callbacks(dash_app):
         State("alert-auto", "is_open"),
         prevent_initial_call=True
     )(save_data)
+    dash_app.callback(
+        Output("collapse", "is_open"),
+        [Input("collapse-button", "n_clicks")],
+        [State("collapse", "is_open")],
+    )(toggle_collapse)
 
     return dash_app
 

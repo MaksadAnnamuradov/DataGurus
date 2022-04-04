@@ -1,8 +1,3 @@
-from fileinput import filename
-from typing import Collection
-
-from bleach import clean
-from click import style
 from flask import redirect
 from .dash import Dash    # need Dash version 1.21.0 or higher
 from dash import Input, Output, State, dcc, html, callback, dash_table
@@ -13,7 +8,6 @@ import io
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
-import pymongo
 from pymongo import MongoClient
 from flask_login import current_user
 

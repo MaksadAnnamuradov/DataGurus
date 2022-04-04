@@ -9,7 +9,6 @@ from pygments.formatters.html import HtmlFormatter
 from markupsafe import Markup
 from flask_login import current_user, login_required
 from dash import html
-import dash_uploader as du
 import flask
 
 main = Blueprint('main', __name__)

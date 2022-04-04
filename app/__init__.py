@@ -76,10 +76,10 @@ def register_extensions(server):
 def register_blueprints(server):
     from app.main import main
     from app.auth import auth
-    from app.mongo import mongo
+    #from app.mongo import mongo
 
     
 
     server.register_blueprint(main)
     server.register_blueprint(auth)
-    server.register_blueprint(mongo)
+    #server.register_blueprint(mongo)

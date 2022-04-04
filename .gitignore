@@ -6,3 +6,7 @@ venv
 .env
 migrations/
 *.db
+
+**cache
+
+/cache_dir

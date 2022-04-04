@@ -10,8 +10,10 @@ from markupsafe import Markup
 from flask_login import current_user, login_required
 from dash import html
 import dash_uploader as du
+import flask
 
 main = Blueprint('main', __name__)
+STATIC_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
 
 @main.route("/")
@@ -32,6 +34,10 @@ def profile():
     print("current_user:", current_user)
     return render_template('profile.html', name=current_user.username)
 
+
+@main.route('/static/<resource>')
+def serve_static(resource):
+    return flask.send_from_directory(STATIC_PATH, resource)
 
 
 # def get_upload_component(id):

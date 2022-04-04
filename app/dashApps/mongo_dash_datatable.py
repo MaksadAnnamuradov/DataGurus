@@ -3,6 +3,7 @@ from typing import Collection
 
 from bleach import clean
 from click import style
+from flask import redirect
 from .dash import Dash    # need Dash version 1.21.0 or higher
 from dash import Input, Output, State, dcc, html, callback, dash_table
 
@@ -15,6 +16,9 @@ import plotly.express as px
 import pymongo
 from pymongo import MongoClient
 from flask_login import current_user
+
+
+from pandas_profiling import ProfileReport
 
 # Connect to local server
 client = MongoClient("mongodb+srv://dash:Dash1234@cluster0.jipdo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
@@ -30,35 +34,28 @@ collection.insert_one(docs)
 
 app_layout = html.Div([
 
-    dbc.Button(
-            "Open collapse",
-            id="collapse-button",
-            className="mb-3",
-            color="primary",
-            n_clicks=0,
-        ),
-        dbc.Collapse(
-            dcc.Upload(
-                id='upload-data',
-                children=html.Div([
-                    'Drag and Drop or ',
-                    html.A('Select Files')
-                ]),
-                style={
-                    'width': '100%',
-                    'height': '60px',
-                    'lineHeight': '60px',
-                    'borderWidth': '1px',
-                    'borderStyle': 'dashed',
-                    'borderRadius': '5px',
-                    'textAlign': 'center',
-                },
-                # Allow multiple files to be uploaded
-                multiple=True
-            ),
-            id="collapse",
-            is_open=False,
-        ),
+
+
+    dcc.Upload(
+        id='upload-data',
+        children=html.Div([
+            'Drag and Drop or ',
+            html.A('Select Files')
+        ]),
+        style={
+            'width': '100%',
+            'height': '60px',
+            'lineHeight': '60px',
+            'borderWidth': '1px',
+            'borderStyle': 'dashed',
+            'borderRadius': '5px',
+            'textAlign': 'center',
+        },
+        # Allow multiple files to be uploaded
+        multiple=True
+    ),
+
+        
         
      
 
@@ -96,6 +93,25 @@ app_layout = html.Div([
             style={"margin-left": '20px', 'margin-bottom': '20px'}
         ),
 
+     dbc.Button(
+            "Pandas Profiling graph",
+            id='adding-graph-btn',
+            className="me-1",
+            color="primary",
+            n_clicks=0,
+            style={"margin-left": '20px', 'margin-bottom': '20px'}
+        ),
+    dbc.Alert(
+            "Created viz",
+            id="alert-viz",
+            is_open=False,
+            duration=4000,
+            style={
+            'color': 'primary'
+            },
+        ),
+
+
     # Create notification when saving to db
     dbc.Alert(
             "Successfully saved to database",
@@ -111,6 +127,7 @@ app_layout = html.Div([
     html.Div(id="show-graphs", children=[]),
     # html.Div(id="placeholder")
 
+   
 ])
 
 
@@ -255,21 +272,27 @@ def save_data(n_clicks, data, is_open):
 
 
 #Create graphs from DataTable data ***************************************
-def add_row(data):
-    df_grpah = pd.DataFrame(data)
-    fig_hist1 = px.histogram(df_grpah, x='age',color="animal")
-    fig_hist2 = px.histogram(df_grpah, x="neutered")
-    return [
-        html.Div(children=[dcc.Graph(figure=fig_hist1)], className="six columns"),
-        html.Div(children=[dcc.Graph(figure=fig_hist2)], className="six columns")
-    ]
+# def add_row(data):
+#     df_grpah = pd.DataFrame(data)
+#     fig_hist1 = px.histogram(df_grpah, x='age',color="animal")
+#     fig_hist2 = px.histogram(df_grpah, x="neutered")
+#     return [
+#         html.Div(children=[dcc.Graph(figure=fig_hist1)], className="six columns"),
+#         html.Div(children=[dcc.Graph(figure=fig_hist2)], className="six columns")
+#     ]
 
 
+def make_vizualization(n_clicks, data, is_open):
+    if n_clicks > 0:
+        dff = pd.DataFrame(data)
+        print("making viz")
 
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
+        design_report = ProfileReport(dff, title="Pandas Profiling Report", explorative=True)
+        design_report.to_file(output_file=f'static/{upload_filename}.html')
+        return redirect('http://127.0.0.1:5000/static' + upload_filename + '.html')
     return is_open
+
+
 
 def init_callbacks(dash_app):
     dash_app.callback(
@@ -280,10 +303,10 @@ def init_callbacks(dash_app):
         State('upload-data', 'last_modified'),
        ],
     )(update_output)
-    dash_app.callback(Output('mongo-datatable', 'children'),
-              [Input('interval_db', 'n_intervals')],)(
-        populate_datatable
-    )
+    dash_app.callback(
+        Output('mongo-datatable', 'children'),
+        [Input('interval_db', 'n_intervals')],)
+    (populate_datatable)
     dash_app.callback(
         Output('my-table', 'data'),
         [Input('adding-rows-btn', 'n_clicks')],
@@ -297,17 +320,20 @@ def init_callbacks(dash_app):
         State('my-table', 'columns')],
     )(add_columns)
     dash_app.callback(
+        Output("alert-viz", "is_open"),
+        Input("adding-graph-btn", "n_clicks"),
+        [State('my-table', 'data'),
+        State("alert-viz", "is_open"),],
+        prevent_initial_call=True
+    )(make_vizualization)
+    dash_app.callback(
         Output("alert-auto", "is_open"),
         Input("save-it", "n_clicks"),
         State("my-table", "data"),
         State("alert-auto", "is_open"),
         prevent_initial_call=True
     )(save_data)
-    dash_app.callback(
-        Output("collapse", "is_open"),
-        [Input("collapse-button", "n_clicks")],
-        [State("collapse", "is_open")],
-    )(toggle_collapse)
+   
 
     return dash_app
 

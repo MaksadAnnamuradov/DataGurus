@@ -1,5 +1,6 @@
-from flask import redirect
-from .dash import Dash    # need Dash version 1.21.0 or higher
+from fileinput import filename
+from typing import Collection
+import dash     # need Dash version 1.21.0 or higher
 from dash import Input, Output, State, dcc, html, callback, dash_table
 
 import base64
@@ -8,11 +9,9 @@ import io
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
+import pymongo
 from pymongo import MongoClient
-from flask_login import current_user
-
-import sweetviz as sv
-from pandas_profiling import ProfileReport
+from bson import ObjectId
 
 # Connect to local server
 client = MongoClient("mongodb+srv://dash:Dash1234@cluster0.jipdo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
@@ -21,19 +20,15 @@ client = MongoClient("mongodb+srv://dash:Dash1234@cluster0.jipdo.mongodb.net/myF
 mydb = client["Maksad"]
 # Create Collection (table) called shelterA
 collection = mydb["default"]
-
 upload_filename = ""
 docs = {"id":1, "name":"Drew"}
 collection.insert_one(docs)
 
+app = dash.Dash(__name__, suppress_callback_exceptions=True,
+                external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
 
-n_clicks=0
-
-app_layout = html.Div([
-
-
-
-    dcc.Upload(
+app.layout = html.Div([
+     dcc.Upload(
         id='upload-data',
         children=html.Div([
             'Drag and Drop or ',
@@ -47,15 +42,15 @@ app_layout = html.Div([
             'borderStyle': 'dashed',
             'borderRadius': '5px',
             'textAlign': 'center',
+            'margin': '10px'
         },
         # Allow multiple files to be uploaded
-        multiple=True,
-
+        multiple=True
     ),
 
     html.Div([
         dcc.Input(
-            id='adding-columns',
+            id='adding-rows-name',
             placeholder='Enter a column name...',
             value='',
             style={'padding': 10}
@@ -65,49 +60,14 @@ app_layout = html.Div([
 
 
     html.Div(id='file-datatable', children=[]),
-
     html.Div(id='mongo-datatable', children=[]),
 
     # activated once/week or when page refreshed
     dcc.Interval(id='interval_db', interval=86400000 * 7, n_intervals=0),
 
-     dbc.Button(
-            "Save to Mongo",
-            id="save-it",
-            className="me-1",
-            color="primary",
-            n_clicks=0,
-            style={"margin-left": '20px', 'margin-bottom': '20px'}
-        ),
-     dbc.Button(
-            "Add Row",
-            id='adding-rows-btn',
-            className="me-1",
-            color="primary",
-            n_clicks=0,
-            style={"margin-left": '20px', 'margin-bottom': '20px'}
-        ),
+    html.Button("Save to Mongo Database", id="save-it"),
 
-     dbc.Button(
-            "Pandas Profiling Report",
-            id='adding-graph-btn',
-            className="me-1",
-            color="primary",
-            n_clicks=0,
-            style={"margin-left": '20px', 'margin-bottom': '20px'}
-        ),
-
-    dbc.Button(
-            "Sweet Viz Report",
-            id='adding-graph-btn-1',
-            className="me-1",
-            color="primary",
-            n_clicks=0,
-            style={"margin-left": '20px', 'margin-bottom': '20px'}
-        ),
-
-    html.A("Click here to access Pandas Profiling Report", href='', target="_blank", id='hidden-button', style = dict(display='none')),
-    html.A("Click here to access Sweet Viz Report", href='', target="_blank", id='hidden-button-1', style = dict(display='none')),
+    html.Button('Add Row', id='adding-rows-btn', n_clicks=0),
 
     # Create notification when saving to db
     dbc.Alert(
@@ -119,28 +79,22 @@ app_layout = html.Div([
             'color': 'primary'
             },
         ),
-    
+
+
+    html.Div(id="show-graphs", children=[]),
     # html.Div(id="placeholder")
 
-   
 ])
 
 
-def parse_contents(contents, filename):
+def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
     global upload_filename
-    global n_clicks
-
-    n_clicks += 1
     #collection = mydb[filename]
-
     upload_filename = filename
-
-    if n_clicks == 1:
-        print("Uploading file: ", filename)
-        collection.delete_many({})
-        #mydb.drop_collection("default")
-        mydb['default'].rename(filename)
+    collection.delete_many({})
+    #mydb.drop_collection("default")
+    mydb['default'].rename(filename)
 
     decoded = base64.b64decode(content_string)
     try:
@@ -158,14 +112,17 @@ def parse_contents(contents, filename):
         ])
 
     return html.Div([
+        html.H5(filename),
+        # dash_table.DataTable(
+        #     data=df.to_dict('records'),
+        #     columns=[{'name': i, 'id': i} for i in df.columns],
+        #     page_size=15
+        # ),
          dash_table.DataTable(
             id='my-table',
             columns=[{
                 'name': x,
                 'id': x,
-                'renamable': True,
-                'deletable': True,
-                'editable': True
             } for x in df.columns],
             data=df.to_dict('records'),
             editable=True,
@@ -176,8 +133,6 @@ def parse_contents(contents, filename):
             sort_mode="single",  # sort across 'multi' or 'single' columns
             page_current=0,  # page number that user is on
             page_size=15,  # number of rows visible per page
-            export_format='csv',
-            export_headers='display',
             style_cell={'textAlign': 'left', 'minWidth': '100px',
                         'width': '100px', 'maxWidth': '100px'},
         ),
@@ -185,15 +140,34 @@ def parse_contents(contents, filename):
 
     ])
 
-def update_output(list_of_contents, list_of_names):
+@app.callback(Output('file-datatable', 'children'),
+    Input('upload-data', 'contents'),
+    State('upload-data', 'filename'),
+    State('upload-data', 'last_modified'))
+
+def update_output(list_of_contents, list_of_names, list_of_dates):
     if list_of_contents is not None:
         children = [
-            parse_contents(c, n) for c, n in
-            zip(list_of_contents, list_of_names)]
+            parse_contents(c, n, d) for c, n, d in
+            zip(list_of_contents, list_of_names, list_of_dates)]
         return children
 
-# Display Datatable with data from Mongo database *************************
+# def import_content(filepath):
+#     mng_client = pymongo.MongoClient('localhost', 27017)
+#     mng_db = mng_client['mongodb_name'] // Replace mongo db name
+#     collection_name = 'collection_name' // Replace mongo db collection name
+#     db_cm = mng_db[collection_name]
+#     cdir = os.path.dirname(__file__)
+#     file_res = os.path.join(cdir, filepath)
 
+#     data = pd.read_csv(file_res)
+#     data_json = json.loads(data.to_json(orient='records'))
+#     db_cm.remove()
+#     db_cm.insert(data_json)
+
+# Display Datatable with data from Mongo database *************************
+@app.callback(Output('mongo-datatable', 'children'),
+              [Input('interval_db', 'n_intervals')])
 def populate_datatable(n_intervals):
     print(n_intervals)
     print(collection.name)
@@ -233,7 +207,7 @@ def populate_datatable(n_intervals):
                 sort_action="native",  # give user capability to sort columns
                 sort_mode="single",  # sort across 'multi' or 'single' columns
                 page_current=0,  # page number that user is on
-                page_size=15,  # number of rows visible per page
+                page_size=6,  # number of rows visible per page
                 style_table={'height': '300px', 'overflowY': 'auto'},
                 style_cell={'textAlign': 'left', 'minWidth': '100px', 'width': '100px', 'maxWidth': '100px'},
                 export_format='csv',
@@ -244,12 +218,24 @@ def populate_datatable(n_intervals):
 
 
 # Add new rows to DataTable ***********************************************
+@app.callback(
+    Output('my-table', 'data'),
+    [Input('adding-rows-btn', 'n_clicks')],
+    [State('my-table', 'data'),
+     State('my-table', 'columns')],
+)
 def add_row(n_clicks, rows, columns):
     if n_clicks > 0:
         rows.append({c['id']: '' for c in columns})
     return rows
 
 #Add new column
+@callback(
+    Output('my-table', 'columns'),
+    [Input('adding-columns-button', 'n_clicks')],
+    [State('adding-rows-name', 'value'),
+     State('my-table', 'columns')],
+)
 def add_columns(n_clicks, value, existing_columns):
     #print(existing_columns)
     if n_clicks > 0:
@@ -258,10 +244,17 @@ def add_columns(n_clicks, value, existing_columns):
             'renamable': True, 'deletable': True
         })
     #prinlt(existing_columns)
-    return existing_columns, ""
+    return existing_columns
 
 
 # Save new DataTable data to the Mongo database ***************************
+@app.callback(
+    Output("alert-auto", "is_open"),
+    Input("save-it", "n_clicks"),
+    State("my-table", "data"),
+    State("alert-auto", "is_open"),
+    prevent_initial_call=True
+)
 def save_data(n_clicks, data, is_open):
     if n_clicks > 0:
         dff = pd.DataFrame(data)
@@ -275,91 +268,20 @@ def save_data(n_clicks, data, is_open):
     return is_open
 
 
-def make_vizualization_ppr(n_clicks, data):
-    if n_clicks > 0:
-        dff = pd.DataFrame(data)
-        print("making viz")
-
-        try:
-            design_report = ProfileReport(dff, title="Pandas Profiling Report")
-            design_report.to_file(output_file=f'app/static/{upload_filename}.html')
-            return dict(), f'http://127.0.0.1:5000/static/{upload_filename}.html'
-        except:
-            print("No data found")
-
-def make_vizualization_sweet_viz(n_clicks, data):
-    if n_clicks > 0:
-        dff = pd.DataFrame(data)
-        print("making viz")
-
-        try:
-            sweet_report = sv.analyze(dff)
-            sweet_report.show_html(f'app/static/{upload_filename}.html')
-
-            return dict(), f'http://127.0.0.1:5000/static/{upload_filename}.html'
-        except:
-            print("No data found")
+# Create graphs from DataTable data ***************************************
+# @app.callback(
+#     Output('show-graphs', 'children'),
+#     Input('my-table', 'data')
+# )
+# def add_row(data):
+#     df_grpah = pd.DataFrame(data)
+#     fig_hist1 = px.histogram(df_grpah, x='age',color="animal")
+#     fig_hist2 = px.histogram(df_grpah, x="neutered")
+#     return [
+#         html.Div(children=[dcc.Graph(figure=fig_hist1)], className="six columns"),
+#         html.Div(children=[dcc.Graph(figure=fig_hist2)], className="six columns")
+#     ]
 
 
-def init_callbacks(dash_app):
-    dash_app.callback(
-        Output('file-datatable', 'children'),
-        Input('upload-data', 'contents'),
-        State('upload-data', 'filename'),
-    )(update_output)
-    dash_app.callback(
-        Output('mongo-datatable', 'children'),
-        Input('interval_db', 'n_intervals'))
-    (populate_datatable)
-    dash_app.callback(
-        Output('my-table', 'data'),
-        Input('adding-rows-btn', 'n_clicks'),
-        State('my-table', 'data'),
-        State('my-table', 'columns'),
-    )(add_row)
-    dash_app.callback(
-        Output('my-table', 'columns'),
-        Output('adding-columns', 'value'),
-        Input('adding-columns-button', 'n_clicks'),
-        State('adding-columns', 'value'),
-        State('my-table', 'columns'),
-    )(add_columns)
-    dash_app.callback(
-        Output("hidden-button", "style"),
-        Output("hidden-button", "href"),
-        Input("adding-graph-btn", "n_clicks"),
-        State('my-table', 'data'),
-    )(make_vizualization_ppr)
-    dash_app.callback(
-        Output("hidden-button-1", "style"),
-        Output("hidden-button-1", "href"),
-        Input("adding-graph-btn-1", "n_clicks"),
-        State('my-table', 'data'),
-    )(make_vizualization_sweet_viz)
-    dash_app.callback(
-        Output("alert-auto", "is_open"),
-        Input("save-it", "n_clicks"),
-        State("my-table", "data"),
-        State("alert-auto", "is_open"),
-        prevent_initial_call=True
-    )(save_data)
-   
-
-    return dash_app
-
-def init_dash(flask_server, current_user):
-    """Create a Plotly Dash dashboard."""
-    dash_app = Dash(server=flask_server, routes_pathname_prefix="/mongo_dash/", external_stylesheets=['assets/bWLwgP.css'])
-
-    # create dash layout
-    dash_app.layout = app_layout
-
-    # initialize callbacks
-    init_callbacks(dash_app)
-
-    print("This is current session user:", current_user)
-
-    return dash_app
-
-# if __name__ == '__main__':
-#     app.run_server(debug=True, port=8080)
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8080)

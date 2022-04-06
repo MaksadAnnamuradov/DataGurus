@@ -175,7 +175,7 @@ def parse_contents(contents, filename):
             sort_action="native",  # give user capability to sort columns
             sort_mode="single",  # sort across 'multi' or 'single' columns
             page_current=0,  # page number that user is on
-            page_size=15,  # number of rows visible per page
+            page_size=12,  # number of rows visible per page
             export_format='csv',
             export_headers='display',
             style_cell={'textAlign': 'left', 'minWidth': '100px',
@@ -233,7 +233,7 @@ def populate_datatable(n_intervals):
                 sort_action="native",  # give user capability to sort columns
                 sort_mode="single",  # sort across 'multi' or 'single' columns
                 page_current=0,  # page number that user is on
-                page_size=15,  # number of rows visible per page
+                page_size=12,  # number of rows visible per page
                 style_table={'height': '300px', 'overflowY': 'auto'},
                 style_cell={'textAlign': 'left', 'minWidth': '100px', 'width': '100px', 'maxWidth': '100px'},
                 export_format='csv',
@@ -283,7 +283,7 @@ def make_vizualization_ppr(n_clicks, data):
         try:
             design_report = ProfileReport(dff, title="Pandas Profiling Report")
             design_report.to_file(output_file=f'app/static/{upload_filename}.html')
-            return dict(), f'http://127.0.0.1:5000/static/{upload_filename}.html'
+            return dict(), f'https://data-gurus.herokuapp.com/static/{upload_filename}.html'
         except:
             print("No data found")
 
@@ -296,7 +296,7 @@ def make_vizualization_sweet_viz(n_clicks, data):
             sweet_report = sv.analyze(dff)
             sweet_report.show_html(f'app/static/{upload_filename}.html')
 
-            return dict(), f'http://127.0.0.1:5000/static/{upload_filename}.html'
+            return dict(), f'https://data-gurus.herokuapp.com/static/{upload_filename}.html'
         except:
             print("No data found")
 

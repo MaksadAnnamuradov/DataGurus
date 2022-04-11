@@ -283,7 +283,7 @@ def make_vizualization_ppr(n_clicks, data):
         try:
             design_report = ProfileReport(dff, title="Pandas Profiling Report")
             design_report.to_file(output_file=f'app/static/{upload_filename}.html')
-            return dict(), f'https://data-gurus.herokuapp.com/static/{upload_filename}.html'
+            return dict(), f'http://127.0.0.1:5000/static/{upload_filename}.html'
         except:
             print("No data found")
 
@@ -296,7 +296,7 @@ def make_vizualization_sweet_viz(n_clicks, data):
             sweet_report = sv.analyze(dff)
             sweet_report.show_html(f'app/static/{upload_filename}.html')
 
-            return dict(), f'https://data-gurus.herokuapp.com/static/{upload_filename}.html'
+            return dict(), f'http://127.0.0.1:5000/static/{upload_filename}.html'
         except:
             print("No data found")
 

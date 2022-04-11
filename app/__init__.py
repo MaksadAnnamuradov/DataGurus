@@ -5,7 +5,7 @@ from flask.helpers import get_root_path
 from flask_login import login_required
 from flask_mongoengine import MongoEngine
 import dash
-from flask_user_demo import login_required, UserManager, UserMixin, current_user
+from flask_user_demo import login_required, UserManager, UserMixin
 from flask_login import LoginManager
 
 
@@ -24,7 +24,7 @@ def register_dashapps(app):
 
     
     dashapp1 = iris_kmeans.init_dash(app)
-    dashapp2 = mongo_dash_datatable.init_dash(app, current_user)
+    dashapp2 = mongo_dash_datatable.init_dash(app)
 
 
     _protect_dashviews(dashapp1)

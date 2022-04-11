@@ -347,7 +347,7 @@ def init_callbacks(dash_app):
 
     return dash_app
 
-def init_dash(flask_server, current_user):
+def init_dash(flask_server):
     """Create a Plotly Dash dashboard."""
     dash_app = Dash(server=flask_server, routes_pathname_prefix="/mongo_dash/", external_stylesheets=['assets/bWLwgP.css'])
 
@@ -357,7 +357,7 @@ def init_dash(flask_server, current_user):
     # initialize callbacks
     init_callbacks(dash_app)
 
-    print("This is current session user:", current_user)
+    print("This is current session user:")
 
     return dash_app
 
